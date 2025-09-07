@@ -147,7 +147,7 @@ const TapCounter = () => {
                 filter: 'drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3))',
               }}
             >
-              ⚡ Tap Counter
+              ⚡ Jaap Counter
             </CardTitle>
             <p
               style={{
