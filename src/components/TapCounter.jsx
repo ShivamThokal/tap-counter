@@ -7,7 +7,7 @@ import { RotateCcw, Target, Zap, Trophy } from 'lucide-react';
 const TapCounter = () => {
   const [count, setCount] = useState(0);
   const [targetLimit, setTargetLimit] = useState(10);
-  const [inputLimit, setInputLimit] = useState('10');
+  const [inputLimit, setInputLimit] = useState('108');
   const [isActive, setIsActive] = useState(false);
   const [hasReachedLimit, setHasReachedLimit] = useState(false);
   const [tapAnimation, setTapAnimation] = useState(false);
