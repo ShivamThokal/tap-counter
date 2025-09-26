@@ -13,7 +13,7 @@ const TapCounter = () => {
   const [tapAnimation, setTapAnimation] = useState(false);
   const audioRef = useRef(null);
 
-  // 🔒 Lock body scroll while this component is mounted
+  // Lock body scroll while component is mounted
   useEffect(() => {
     const prevOverflow = document.body.style.overflow;
     const prevOverscroll = document.body.style.overscrollBehavior;
@@ -25,7 +25,7 @@ const TapCounter = () => {
     };
   }, []);
 
-  // Create audio context for sound feedback
+  // Audio feedback
   useEffect(() => {
     const createBeepSound = () => {
       const audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -54,18 +54,18 @@ const TapCounter = () => {
     const newCount = count + 1;
     setCount(newCount);
 
-    // Trigger tap animation
+    // Light vibration on every tap
+    if (navigator.vibrate) navigator.vibrate(50);
+
+    // Trigger animation
     setTapAnimation(true);
     setTimeout(() => setTapAnimation(false), 180);
 
-    // Check if target is reached
     if (newCount >= targetLimit) {
       setHasReachedLimit(true);
 
-      // Trigger vibration if supported
-      if (navigator.vibrate) {
-        navigator.vibrate([200, 100, 200]);
-      }
+      // Strong vibration when goal reached
+      if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
 
       // Play sound
       if (audioRef.current) {
@@ -100,24 +100,26 @@ const TapCounter = () => {
   return (
     <div
       style={{
-        position: 'fixed',   // ✅ pin to viewport
+        position: 'fixed',
         inset: 0,
-        height: '100dvh',    // ✅ stable on mobile address bar changes
+        height: '100dvh',
         width: '100vw',
-        overflow: 'hidden',  // ✅ no scrollbars ever
+        overflow: 'hidden',
         display: 'grid',
         placeItems: 'center',
         background: 'linear-gradient(135deg, #f0f9ff 0%, #e0e7ff 50%, #faf5ff 100%)',
         boxSizing: 'border-box',
       }}
+      onClick={handleTap} // Tap anywhere
     >
       <div
         style={{
           width: '100%',
           maxWidth: '480px',
-          padding: '1rem', // inner spacing that won't affect viewport height
+          padding: '1rem',
           boxSizing: 'border-box',
         }}
+        onClick={(e) => e.stopPropagation()}
       >
         <Card
           style={{
@@ -126,11 +128,10 @@ const TapCounter = () => {
             backgroundColor: 'rgba(255, 255, 255, 0.9)',
             backdropFilter: 'blur(16px)',
             borderRadius: '24px',
-            overflow: 'clip', // clip any internal overflows from effects
-            contain: 'layout paint style', // prevent layout shifts from escaping
+            overflow: 'clip',
+            contain: 'layout paint style',
           }}
         >
-          {/* Header */}
           <CardHeader
             style={{
               textAlign: 'center',
@@ -147,7 +148,7 @@ const TapCounter = () => {
                 filter: 'drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3))',
               }}
             >
-              ⚡ Tap Counter
+              📿 Jaap Counter 🧿
             </CardTitle>
             <p
               style={{
@@ -157,7 +158,9 @@ const TapCounter = () => {
                 margin: 0,
               }}
             >
-              {isActive ? `${remainingTaps} taps to go!` : 'Set your goal and start tapping!'}
+              {isActive
+                ? `${remainingTaps} akshara to go!`
+                : 'Set your goal and start your jaap!'}
             </p>
           </CardHeader>
 
@@ -169,72 +172,89 @@ const TapCounter = () => {
               gap: 16,
             }}
           >
-            {/* Counter Display */}
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ position: 'relative' }}>
+            {/* ===================== Challenge UI ===================== */}
+            {isActive && !hasReachedLimit && (
+              <div style={{ textAlign: 'center', position: 'relative' }}>
+                {/* Background pulse */}
                 <div
                   style={{
-                    fontSize: '4rem',
+                    position: 'absolute',
+                    inset: 0,
+                    background:
+                      'radial-gradient(circle, rgba(59,130,246,0.2) 0%, transparent 70%)',
+                    borderRadius: '24px',
+                    animation: tapAnimation ? 'pulse 0.4s ease-out' : 'none',
+                    zIndex: 0,
+                  }}
+                />
+
+                {/* Counter */}
+                <div
+                  style={{
+                    fontSize: '5rem',
                     fontWeight: 900,
-                    background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
+                    background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent',
                     marginBottom: 8,
                     transition: 'transform 0.18s ease',
-                    transform: tapAnimation ? 'scale(1.06)' : 'scale(1)',
+                    transform: tapAnimation ? 'scale(1.12)' : 'scale(1)',
                     willChange: 'transform',
+                    zIndex: 1,
                   }}
                 >
                   {count}
                 </div>
 
-                {isActive && (
+                {/* Remaining taps */}
+                <div
+                  style={{
+                    fontSize: '1.25rem',
+                    fontWeight: 600,
+                    color: '#6b7280',
+                    marginBottom: 12,
+                    zIndex: 1,
+                  }}
+                >
+                  {remainingTaps} akshara left
+                </div>
+
+                {/* Progress bar */}
+                <div
+                  style={{
+                    position: 'relative',
+                    height: 16,
+                    borderRadius: 12,
+                    backgroundColor: '#e5e7eb',
+                    overflow: 'hidden',
+                    zIndex: 1,
+                    boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.1)',
+                  }}
+                >
                   <div
                     style={{
-                      fontSize: '1rem',
-                      color: '#6b7280',
-                      fontWeight: 600,
-                      marginBottom: 12,
+                      width: `${Math.min(progressPercentage, 100)}%`,
+                      height: '100%',
+                      background:
+                        'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
+                      transition: 'width 0.3s ease-out',
                     }}
-                  >
-                    of {targetLimit} taps
-                  </div>
-                )}
+                  />
+                </div>
 
-                {isActive && (
-                  <div style={{ position: 'relative' }}>
-                    <div
-                      style={{
-                        width: '100%',
-                        backgroundColor: '#e5e7eb',
-                        borderRadius: 9999,
-                        height: 12,
-                      }}
-                    >
-                      <div
-                        style={{
-                          background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
-                          height: 12,
-                          borderRadius: 9999,
-                          transition: 'width 0.4s ease-out',
-                          width: `${Math.min(progressPercentage, 100)}%`,
-                        }}
-                      />
-                    </div>
-                    <div
-                      style={{
-                        fontSize: 12,
-                        color: '#6b7280',
-                        marginTop: 8,
-                        fontWeight: 500,
-                      }}
-                    >
-                      {Math.round(progressPercentage)}% Complete
-                    </div>
-                  </div>
-                )}
+                {/* Progress text */}
+                <div
+                  style={{
+                    fontSize: 14,
+                    color: '#374151',
+                    marginTop: 8,
+                    fontWeight: 500,
+                  }}
+                >
+                  {Math.round(progressPercentage)}% Complete
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Input Section */}
             {!isActive && (
@@ -283,45 +303,7 @@ const TapCounter = () => {
                   disabled={!inputLimit || parseInt(inputLimit) <= 0}
                 >
                   <Zap style={{ width: 20, height: 20, marginRight: 8 }} />
-                  Start Challenge
-                </Button>
-              </div>
-            )}
-
-            {/* Tap Button */}
-            {isActive && !hasReachedLimit && (
-              <div
-                style={{
-                  display: 'grid',
-                  placeItems: 'center',
-                }}
-              >
-                <Button
-                  onClick={handleTap}
-                  style={{
-                    width: 'min(80vw, 20rem)',   // ✅ big but never causes overflow
-                    height: 'min(80vw, 20rem)',
-                    borderRadius: '50%',
-                    background:
-                      'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #4f46e5 100%)',
-                    color: 'white',
-                    fontSize: 24,
-                    fontWeight: 900,
-                    border: '6px solid rgba(255,255,255,0.7)',
-                    boxShadow: '0 20px 60px rgba(79,70,229,0.35)',
-                    transition: 'transform 0.1s ease',
-                    transform: tapAnimation ? 'scale(0.98)' : 'scale(1)', // only shrink on press
-                    willChange: 'transform',
-                    contain: 'paint',
-                  }}
-                >
-                  <div style={{ display: 'grid', placeItems: 'center' }}>
-                    <div style={{ fontSize: 32, marginBottom: 6 }}>👆</div>
-                    <div>TAP ME</div>
-                    <div style={{ fontSize: 14, fontWeight: 600, marginTop: 6, opacity: 0.9 }}>
-                      {remainingTaps} left
-                    </div>
-                  </div>
+                  Start Jaap
                 </Button>
               </div>
             )}
@@ -347,10 +329,10 @@ const TapCounter = () => {
                     WebkitTextFillColor: 'transparent',
                   }}
                 >
-                  Well Done!
+                  God Bless You!
                 </div>
                 <div style={{ fontSize: 18, color: '#374151', fontWeight: 600 }}>
-                  You reached your goal of {targetLimit} taps.
+                  You completed the jaap of {targetLimit} times!
                 </div>
                 <div
                   style={{
@@ -363,13 +345,13 @@ const TapCounter = () => {
                   }}
                 >
                   <Trophy style={{ width: 20, height: 20 }} />
-                  Goal Completed
+                  Jaap Completed
                   <Trophy style={{ width: 20, height: 20 }} />
                 </div>
               </div>
             )}
 
-            {/* Action Buttons */}
+            {/* Reset Button */}
             <div style={{ display: 'flex', gap: 12 }}>
               {(isActive || hasReachedLimit) && (
                 <Button
@@ -387,13 +369,24 @@ const TapCounter = () => {
                   }}
                 >
                   <RotateCcw style={{ width: 16, height: 16, marginRight: 8 }} />
-                  {hasReachedLimit ? 'New Challenge' : 'Reset'}
+                  {hasReachedLimit ? 'New Japa' : 'Reset'}
                 </Button>
               )}
             </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* Global CSS for pulse animation */}
+      <style>
+        {`
+          @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.6; }
+            50% { transform: scale(1.08); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 0.6; }
+          }
+        `}
+      </style>
     </div>
   );
 };
